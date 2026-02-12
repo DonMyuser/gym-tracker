@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gym Tracker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <main>
+        <section id="hub" class="page active">
+            <h1 class="h1-hub">Buenos días, <br><span>Darío</span></h1>
+            <span class="subtitle">Martes, 10 Feb • ¡A entrenar!</span>
+
+            <div class="card input-weight">
+                <label>Registro rápido</label>
+                <div class="weight-control-row">
+                    <button class="step" onclick="adjustWeight(-0.05)">−</button>
+                    <div class="weight-display">
+                        <input type="number" class="weight-input" value="63.00" step="0.1">
+                        <span class="weight-label">Kg actuales</span>
+                    </div>
+                    <button class="step" onclick="adjustWeight(0.05)">+</button>
+                </div>
+            </div>
+
+            <div class="card trend-card">
+                <div class="trend-info">
+                    <div class="trend-title">Progreso Semanal</div>
+                    <div class="trend-period">vs. semana pasada</div>
+                </div>
+                <div class="trend-badge up">
+                    <span>↗</span> +0.45 kg
+                </div>
+            </div>
+
+            <div class="card graph-card">
+                <div class="graph-header">
+                    <span class="graph-title">Evolución</span>
+                </div>
+                <div class="graph">
+                    <canvas id="pesoChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section id="entrenamiento" class="page">
+            <div id="training-container">
+                <button id="btn-back" class="backBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
+                        class="ios-back">
+                        <path d="m15 18-6-6 6-6" />
+                    </svg></button>
+                <div class="container">
+                    <h1 id="serie-display" class="serie-titulo">Serie 1</h1>
+                    <h2 id="ejercicio-display" class="ejercicio-titulo">Press Banca</h2>
+
+                    <div class="input-group">
+                        <div>
+                            <label class="input-label">Peso (Kg)</label>
+                            <input id="input-peso" type="number" placeholder="0">
+                        </div>
+                        <div>
+                            <label class="input-label">Repeticiones</label>
+                            <input id="input-reps" type="number" placeholder="0">
+                        </div>
+                        <div>
+                            <label class="input-label">RIR</label>
+                            <input id="input-rir" type="number" placeholder="0">
+                        </div>
+                        <div>
+                            <button id="btn-next-set" class="nextBtn">Siguiente Serie</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="completeScreen" id="finish-screen">
+                <h1 class="complete-icon">🎉</h1>
+                <h2 class="complete-title">¡Entrenamiento Completado!</h2>
+                <p class="complete-subtitle">Has machacado todas las series.</p>
+
+                <div class="finish-buttons">
+                    <button class="nextBtn btn-secondary">Ver Resumen / Editar</button>
+                    <button class="nextBtn" id="finalizar-todo-btn">Finalizar y Salir</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="progreso" class="page">
+            <h1>Progreso</h1>
+            <div class="container">
+
+                <div class="input-group">
+                    <label>Selecciona ejercicio</label>
+                    <select>
+                        <option>Press Banca</option>
+                        <option>Sentadilla</option>
+                        <option>Dominadas</option>
+                    </select>
+                </div>
+            </div>
+            <div class="card graph-card">
+                <div class="graph">
+                    <canvas id="volumenChart"></canvas>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <nav>
+        <button id="hubBtn" class="nav-btn active">Hub</button>
+        <button id="entrenamientoBtn" class="nav-btn">Entreno</button>
+        <button id="progresoBtn" class="nav-btn">Progreso</button>
+    </nav>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

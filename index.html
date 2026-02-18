@@ -96,13 +96,11 @@
 
                 <div class="input-group">
                     <label>Selecciona ejercicio</label>
-                    <select>
-                        <option>Press Banca</option>
-                        <option>Sentadilla</option>
-                        <option>Dominadas</option>
-                    </select>
+                    <select id="ejercicio-select"></select>
                 </div>
             </div>
+            <!-- Spinner de carga -->
+            <div id="loading-spinner" style="display:none"></div>
             <div class="card graph-card">
                 <div class="graph">
                     <canvas id="volumenChart"></canvas>

@@ -1,0 +1,13 @@
+[build]
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/"
+  to = "/login.html"
+  status = 302
+  conditions = {}
+
+[[redirects]]
+  from = "/index.html"
+  to = "/index.html"
+  status = 200

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gym Tracker — Login</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #0f172a;
+            color: #f1f5f9;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-card {
+            background: #1e293b;
+            border-radius: 20px;
+            padding: 40px 32px;
+            width: 100%;
+            max-width: 360px;
+            margin: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        }
+
+        .login-icon {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.4rem;
+            margin-bottom: 4px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-bottom: 32px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-bottom: 8px;
+        }
+
+        input[type="password"] {
+            width: 100%;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: #f1f5f9;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="password"]:focus {
+            border-color: #38bdf8;
+        }
+
+        input[type="password"].error {
+            border-color: #ef4444;
+        }
+
+        .error-msg {
+            color: #ef4444;
+            font-size: 0.82rem;
+            margin-top: 8px;
+            display: none;
+        }
+
+        button {
+            width: 100%;
+            background: #38bdf8;
+            color: #0f172a;
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: opacity 0.2s;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        button:active:not(:disabled) {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="login-icon">🏋️</div>
+        <h1>Gym Tracker</h1>
+        <p class="subtitle">Introduce la contraseña para acceder</p>
+
+        <label>Contraseña</label>
+        <input type="password" id="password-input" placeholder="••••••••" autofocus>
+        <p class="error-msg" id="error-msg">Contraseña incorrecta</p>
+
+        <button id="login-btn">Entrar</button>
+    </div>
+
+    <script>
+        const input = document.getElementById('password-input');
+        const btn   = document.getElementById('login-btn');
+        const error = document.getElementById('error-msg');
+
+        async function doLogin() {
+            const password = input.value.trim();
+            if (!password) return;
+
+            btn.disabled = true;
+            btn.textContent = 'Comprobando...';
+            error.style.display = 'none';
+            input.classList.remove('error');
+
+            try {
+                const res = await fetch('/.netlify/functions/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+
+                const data = await res.json();
+
+                if (data.ok) {
+                    sessionStorage.setItem('gym_token', data.token);
+                    window.location.href = '/index.html';
+                } else {
+                    input.classList.add('error');
+                    error.style.display = 'block';
+                    input.value = '';
+                    input.focus();
+                }
+            } catch (e) {
+                error.textContent = 'Error de conexión, inténtalo de nuevo';
+                error.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Entrar';
+            }
+        }
+
+        btn.addEventListener('click', doLogin);
+        input.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+    </script>
+</body>
+</html>

@@ -1,3 +1,8 @@
+// Guard de autenticación — redirige al login si no hay token
+if (!sessionStorage.getItem('gym_token')) {
+    window.location.href = '/login.html';
+}
+
 // ============================================================
 // CONFIGURACIÓN
 // ============================================================

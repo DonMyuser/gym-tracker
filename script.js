@@ -290,5 +290,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     // ARRANQUE
     actualizarUI();
+    cargarGraficoPeso(); 
 
 }); // fin DOMContentLoaded

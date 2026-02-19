@@ -1,8 +1,3 @@
-// Guard de autenticación — redirige al login si no hay token
-if (!sessionStorage.getItem('gym_token')) {
-    window.location.href = '/login.html';
-}
-
 // ============================================================
 // CONFIGURACIÓN
 // ============================================================
@@ -22,22 +17,22 @@ document.addEventListener('DOMContentLoaded', () => {
     let cacheFilas = null;
 
     // DOM cacheado
-    const input             = document.querySelector('.weight-input');
-    const btns              = document.querySelectorAll('.nav-btn');
-    const pages             = document.querySelectorAll('.page');
-    const serieDisplay      = document.getElementById('serie-display');
-    const ejercicioDisplay  = document.getElementById('ejercicio-display');
-    const btnNextSet        = document.getElementById('btn-next-set');
+    const input = document.querySelector('.weight-input');
+    const btns = document.querySelectorAll('.nav-btn');
+    const pages = document.querySelectorAll('.page');
+    const serieDisplay = document.getElementById('serie-display');
+    const ejercicioDisplay = document.getElementById('ejercicio-display');
+    const btnNextSet = document.getElementById('btn-next-set');
     const trainingContainer = document.getElementById('training-container');
-    const finishScreen      = document.getElementById('finish-screen');
-    const inputPeso         = document.getElementById('input-peso');
-    const inputReps         = document.getElementById('input-reps');
-    const inputRir          = document.getElementById('input-rir');
-    const ejercicioSelect   = document.getElementById('ejercicio-select');
-    const spinner           = document.getElementById('loading-spinner');
-    const graphCard         = document.querySelector('#progreso .graph-card');
+    const finishScreen = document.getElementById('finish-screen');
+    const inputPeso = document.getElementById('input-peso');
+    const inputReps = document.getElementById('input-reps');
+    const inputRir = document.getElementById('input-rir');
+    const ejercicioSelect = document.getElementById('ejercicio-select');
+    const spinner = document.getElementById('loading-spinner');
+    const graphCard = document.querySelector('#progreso .graph-card');
 
-    window.adjustWeight = function(delta) {
+    window.adjustWeight = function (delta) {
         const val = Math.round((parseFloat(input.value) + delta) * 20) / 20;
         input.value = val.toFixed(2);
     };
@@ -46,8 +41,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // SPINNER — muestra/oculta el spinner y la gráfica
     // ============================================================
     function mostrarSpinner(visible) {
-        if (spinner)   spinner.style.display  = visible ? 'block' : 'none';
-        if (graphCard) graphCard.style.display = visible ? 'none'  : 'block';
+        if (spinner) spinner.style.display = visible ? 'block' : 'none';
+        if (graphCard) graphCard.style.display = visible ? 'none' : 'block';
     }
 
     // ============================================================
@@ -97,13 +92,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-
-    window.miGraficoPeso = crearGrafico('pesoChart', 'Peso',
-        ['Sem. 1', 'Sem. 2', 'Sem. 3'], [61.29, 62.04, 62.87], '#38bdf8');
-
-    window.miGraficoVolumen = crearGrafico('volumenChart', 'Volumen total',
-        ['Sem. 1', 'Sem. 2', 'Sem. 3', 'Sem. 4', 'Sem. 5', 'Sem. 6', 'Sem. 7'],
-        [662.5, 687.5, 690, 680, 600, 540, 800], '#FF7F50', true);
 
     // ============================================================
     // ENVÍO A SHEETS
@@ -160,11 +148,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // UI: animaciones
     // ============================================================
     function actualizarUI(direccion = 'next') {
-        const exitClass  = direccion === 'next' ? 'slide-out-left'  : 'slide-out-right';
-        const enterClass = direccion === 'next' ? 'slide-in-right'  : 'slide-in-left';
+        const exitClass = direccion === 'next' ? 'slide-out-left' : 'slide-out-right';
+        const enterClass = direccion === 'next' ? 'slide-in-right' : 'slide-in-left';
         trainingContainer.classList.add(exitClass, 'animating');
         setTimeout(() => {
-            serieDisplay.innerText     = `Serie ${serieActual}`;
+            serieDisplay.innerText = `Serie ${serieActual}`;
             ejercicioDisplay.innerText = rutina[ejercicioActualIndex].nombre;
             inputPeso.value = inputReps.value = inputRir.value = '';
             trainingContainer.classList.replace(exitClass, enterClass);
@@ -240,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function actualizarGraficoConFilas(filas, ejercicio) {
         const filtro = ejercicio.toLowerCase().trim();
-        const datos  = filas.filter(f => f.ejercicio?.toString().toLowerCase().trim() === filtro);
+        const datos = filas.filter(f => f.ejercicio?.toString().toLowerCase().trim() === filtro);
         if (!datos.length) { console.warn("Sin datos para:", filtro); return; }
 
         const volumenPorDia = datos.reduce((acc, f) => {
@@ -250,7 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, {});
 
         const etiquetas = Object.keys(volumenPorDia).sort((a, b) => new Date(a) - new Date(b));
-        const valores   = etiquetas.map(f => volumenPorDia[f]);
+        const valores = etiquetas.map(f => volumenPorDia[f]);
 
         if (window.miGraficoVolumen) {
             window.miGraficoVolumen.data.labels = etiquetas;
@@ -265,6 +253,41 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    async function cargarGraficoPeso() {
+        try {
+            const filas = await (await fetch(G_SCRIPT_URL + '?hoja=pesaje')).json();
+
+            // Agrupar por semana y hacer media
+            const porSemana = {};
+            filas.forEach(f => {
+                if (!f.fecha || !f.peso) return;
+                const [dia, mes, anyo] = f.fecha.split('/');
+                const fecha = new Date(`${anyo}-${mes}-${dia}`);
+                const semana = `${anyo}-S${getWeekNumber(fecha)}`;
+                if (!porSemana[semana]) porSemana[semana] = { suma: 0, dias: 0 };
+                porSemana[semana].suma += parseFloat(f.peso) || 0;
+                porSemana[semana].dias += 1;
+            });
+
+            const etiquetas = Object.keys(porSemana).sort();
+            const valores = etiquetas.map(s =>
+                Math.round((porSemana[s].suma / porSemana[s].dias) * 100) / 100
+            );
+
+            if (window.miGraficoPeso) {
+                window.miGraficoPeso.data.labels = etiquetas;
+                window.miGraficoPeso.data.datasets[0].data = valores;
+                window.miGraficoPeso.update();
+            }
+        } catch (e) { console.error("Error cargando peso:", e); }
+    }
+
+    function getWeekNumber(date) {
+        const d = new Date(date);
+        d.setHours(0, 0, 0, 0);
+        d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+        return Math.ceil((((d - new Date(d.getFullYear(), 0, 1)) / 86400000) + 1) / 7);
+    }
     // ARRANQUE
     actualizarUI();
 

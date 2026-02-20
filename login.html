@@ -1,11 +1,16 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Gym Tracker — Login</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
             background: #0f172a;
@@ -24,7 +29,7 @@
             width: 100%;
             max-width: 360px;
             margin: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
         }
 
         .login-icon {
@@ -104,6 +109,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="login-card">
         <div class="login-icon">🏋️</div>
@@ -119,7 +125,7 @@
 
     <script>
         const input = document.getElementById('password-input');
-        const btn   = document.getElementById('login-btn');
+        const btn = document.getElementById('login-btn');
         const error = document.getElementById('error-msg');
 
         async function doLogin() {
@@ -141,10 +147,11 @@
                 const data = await res.json();
 
                 if (data.ok) {
-                    sessionStorage.setItem('gym_token', data.token);
+                    localStorage.setItem('gym_token', data.token);
                     window.location.href = '/index.html';
                 } else {
                     input.classList.add('error');
+                    error.textContent = data.error || 'Contraseña incorrecta';
                     error.style.display = 'block';
                     input.value = '';
                     input.focus();
@@ -162,4 +169,5 @@
         input.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
     </script>
 </body>
+
 </html>

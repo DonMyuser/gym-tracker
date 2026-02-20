@@ -1,7 +1,7 @@
 // ============================================================
 // CONFIGURACIÓN
 // ============================================================
-const G_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyTtJwX3XeWfj2wvw3DzeG4wfok1IWsnAoClE8q2iPRWP9Jgv0yU9GjEckPtrnwWgoV/exec";
+const G_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyLKdWELSwsTMM6gAmZmOk6UTc5KoUgSsWwOz24FvpnG7CsMBjuYjXxSEX9Ssoqdep8/exec";
 
 const rutina = [
     { nombre: "Press Banca", series: 3 },
@@ -87,11 +87,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 plugins: { legend: { display: false } },
                 scales: {
                     x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
-                    y: { display: mostrarEjeY, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } }
+                    y: {
+                        display: mostrarEjeY,
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { color: '#94a3b8' },
+                        grace: '5%'
+                    }
                 }
             }
         });
     }
+
+    window.miGraficoPeso = crearGrafico('pesoChart', 'Peso',
+        ['Sem. 1', 'Sem. 2', 'Sem. 3'], [61.29, 62.04, 62.87], '#38bdf8', true);
+
+    window.miGraficoVolumen = crearGrafico('volumenChart', 'Volumen total',
+        ['Sem. 1', 'Sem. 2', 'Sem. 3', 'Sem. 4', 'Sem. 5', 'Sem. 6', 'Sem. 7'],
+        [662.5, 687.5, 690, 680, 600, 540, 800], '#FF7F50', true);
+
+
 
     // ============================================================
     // ENVÍO A SHEETS
@@ -253,19 +267,28 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function getWeekNumber(date) {
+        const d = new Date(date);
+        d.setHours(0, 0, 0, 0);
+        d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+        return Math.ceil((((d - new Date(d.getFullYear(), 0, 1)) / 86400000) + 1) / 7);
+    }
+
     async function cargarGraficoPeso() {
         try {
             const filas = await (await fetch(G_SCRIPT_URL + '?hoja=pesaje')).json();
 
-            // Agrupar por semana y hacer media
             const porSemana = {};
             filas.forEach(f => {
-                if (!f.fecha || !f.peso) return;
-                const [dia, mes, anyo] = f.fecha.split('/');
-                const fecha = new Date(`${anyo}-${mes}-${dia}`);
-                const semana = `${anyo}-S${getWeekNumber(fecha)}`;
+                if (!f.Fecha || !f.Peso) return;
+
+                // Funciona con ISO, dd/mm/yyyy o cualquier formato
+                const fecha = new Date(f.Fecha);
+                if (isNaN(fecha)) return;
+
+                const semana = `${fecha.getFullYear()}-S${String(getWeekNumber(fecha)).padStart(2, '0')}`;
                 if (!porSemana[semana]) porSemana[semana] = { suma: 0, dias: 0 };
-                porSemana[semana].suma += parseFloat(f.peso) || 0;
+                porSemana[semana].suma += parseFloat(f.Peso) || 0;
                 porSemana[semana].dias += 1;
             });
 
@@ -274,22 +297,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 Math.round((porSemana[s].suma / porSemana[s].dias) * 100) / 100
             );
 
+            const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+
+            const etiquetasLegibles = etiquetas.map(s => {
+                const [anyo, semNum] = s.split('-S');
+                const primerDia = new Date(anyo, 0, 1 + (parseInt(semNum) - 1) * 7);
+                const mes = primerDia.getMonth();
+
+                // Contar cuántas semanas del mismo mes han pasado antes
+                const semanasMismoMes = etiquetas.filter(e => {
+                    const [a, n] = e.split('-S');
+                    const d = new Date(a, 0, 1 + (parseInt(n) - 1) * 7);
+                    return d.getMonth() === mes && d.getFullYear() === parseInt(anyo) && n <= semNum;
+                }).length;
+
+                return `${MESES[mes]} ${semanasMismoMes}`;
+            });
+
             if (window.miGraficoPeso) {
-                window.miGraficoPeso.data.labels = etiquetas;
+                window.miGraficoPeso.data.labels = etiquetasLegibles;
                 window.miGraficoPeso.data.datasets[0].data = valores;
                 window.miGraficoPeso.update();
             }
         } catch (e) { console.error("Error cargando peso:", e); }
     }
 
-    function getWeekNumber(date) {
-        const d = new Date(date);
-        d.setHours(0, 0, 0, 0);
-        d.setDate(d.getDate() + 4 - (d.getDay() || 7));
-        return Math.ceil((((d - new Date(d.getFullYear(), 0, 1)) / 86400000) + 1) / 7);
-    }
     // ARRANQUE
     actualizarUI();
-    cargarGraficoPeso(); 
+    cargarGraficoPeso();
 
 }); // fin DOMContentLoaded

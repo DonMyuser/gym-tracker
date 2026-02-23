@@ -470,3 +470,142 @@ nav {
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
+
+.container {
+    position: relative;  /* añade esto */
+}
+
+#btn-sustituir {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: var(--bg-main);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--text-muted);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s, transform 0.3s;
+}
+
+#btn-sustituir:active {
+    transform: rotate(180deg);
+}
+
+/* ===== CRONÓMETRO DE DESCANSO ===== */
+.rest-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(6px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.rest-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.rest-label {
+  color: var(--text-muted);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin: 0;
+}
+
+.rest-ring {
+  width: 200px;
+  height: 200px;
+  transform: rotate(-90deg);
+}
+
+.rest-ring-bg {
+  fill: none;
+  stroke: rgba(255,255,255,0.06);
+  stroke-width: 8;
+}
+
+.rest-ring-fill {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-dasharray: 326.7;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 1s linear, stroke 0.4s;
+}
+
+.rest-time-wrap {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+
+.rest-ring-wrapper {
+  position: relative;
+  width: 200px;
+  height: 200px;
+}
+
+.rest-ring {
+  width: 200px;
+  height: 200px;
+  transform: rotate(-90deg);
+  display: block;
+}
+
+.rest-time-wrap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+#rest-countdown {
+  font-size: 56px;
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.rest-unit {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.rest-skip-btn {
+  margin-top: 8px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.15);
+  color: var(--text-muted);
+  border-radius: 12px;
+  padding: 12px 32px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.rest-skip-btn:hover,
+.rest-skip-btn:active {
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: scale(0.97);
+}

@@ -1,7 +1,7 @@
 // ============================================================
 // CONFIGURACIÓN
 // ============================================================
-const G_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx8nee0MJRsZftZuRHy2uoHvh8YeMZJASrs5mB7PUM7T7VjqLopNChjrk-8pWZI-CFa/exec";
+const G_SCRIPT_URL = "/.netlify/functions/gym";
 
 const rutinas = {
     1: {

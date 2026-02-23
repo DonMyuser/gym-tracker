@@ -1,7 +1,7 @@
 // ============================================================
 // CONFIGURACIÓN
 // ============================================================
-const G_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw6GUdtFl8JsV4Jw3mWhNQt7OPPkpIic_5TcOOaL9gH7C3wfBJI3dmBk6de-PjmDfRA/exec";
+const G_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx_F9YJEvTwuGTJT1jf9hd1sFyY3lhj_vejAq84UV_9ZujcMAb3XDPU6rpeZf2AxTk/exec";
 
 const rutina = [
     { nombre: "Press Banca", series: 3 },

@@ -148,7 +148,7 @@
 
                 if (data.ok) {
                     localStorage.setItem('gym_token', data.token);
-                    window.location.href = '/index.html';
+                    window.location.replace('/index.html');  // replace en vez de href
                 } else {
                     input.classList.add('error');
                     error.textContent = data.error || 'Contraseña incorrecta';

@@ -12,7 +12,7 @@
         }
     </style>
     <script>
-        if (!sessionStorage.getItem('gym_token')) {
+        if (!localStorage.getItem('gym_token')) {
             window.location.href = '/login.html';
         } else {
             document.addEventListener('DOMContentLoaded', () => {
@@ -38,6 +38,9 @@
                     </div>
                     <button class="step" onclick="adjustWeight(0.05)">+</button>
                 </div>
+                <button id="btn-guardar-peso" class="nextBtn" style="margin-top: 12px;">Guardar peso</button>
+                <p id="peso-feedback"
+                    style="text-align:center; font-size:0.85rem; color:#94a3b8; margin-top:8px; display:none;"></p>
             </div>
 
             <div class="card trend-card">

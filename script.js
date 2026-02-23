@@ -1,7 +1,7 @@
 // ============================================================
 // CONFIGURACIÓN
 // ============================================================
-const G_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyLKdWELSwsTMM6gAmZmOk6UTc5KoUgSsWwOz24FvpnG7CsMBjuYjXxSEX9Ssoqdep8/exec";
+const G_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw6GUdtFl8JsV4Jw3mWhNQt7OPPkpIic_5TcOOaL9gH7C3wfBJI3dmBk6de-PjmDfRA/exec";
 
 const rutina = [
     { nombre: "Press Banca", series: 3 },
@@ -31,6 +31,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const ejercicioSelect = document.getElementById('ejercicio-select');
     const spinner = document.getElementById('loading-spinner');
     const graphCard = document.querySelector('#progreso .graph-card');
+    const btnGuardarPeso = document.getElementById('btn-guardar-peso');
+    const pesoFeedback = document.getElementById('peso-feedback');
 
     window.adjustWeight = function (delta) {
         const val = Math.round((parseFloat(input.value) + delta) * 20) / 20;
@@ -321,6 +323,33 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (e) { console.error("Error cargando peso:", e); }
     }
+
+    btnGuardarPeso.addEventListener('click', async () => {
+        const peso = parseFloat(input.value);
+        if (!peso || isNaN(peso)) return;
+
+        btnGuardarPeso.disabled = true;
+        btnGuardarPeso.textContent = 'Guardando...';
+
+        try {
+            await fetch(G_SCRIPT_URL + '?accion=guardarPeso', {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ Fecha: new Date().toISOString(), Peso: peso })
+            });
+            pesoFeedback.textContent = '✓ Peso guardado';
+            pesoFeedback.style.color = '#38bdf8';
+        } catch (e) {
+            pesoFeedback.textContent = '✗ Error al guardar';
+            pesoFeedback.style.color = '#ef4444';
+        } finally {
+            pesoFeedback.style.display = 'block';
+            btnGuardarPeso.disabled = false;
+            btnGuardarPeso.textContent = 'Guardar peso';
+            setTimeout(() => pesoFeedback.style.display = 'none', 3000);
+        }
+    });
 
     // ARRANQUE
     actualizarUI();

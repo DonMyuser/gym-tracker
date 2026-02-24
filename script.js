@@ -724,14 +724,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 fetch(G_SCRIPT_URL + '?hoja=pesaje').then(r => r.json())
             ]);
 
-            // Caché de ejercicios lista para Progreso
             cacheFilas = filasEjercicios;
-
-            // Renderizar gráfico de peso en Hub
             procesarYRenderizarPeso(filasPeso);
 
         } catch (e) {
             console.error("Error en carga inicial:", e);
+        } finally {
+            // Ocultar splash siempre, aunque falle la carga
+            document.getElementById('splash-screen').classList.add('oculto');
         }
     }
 

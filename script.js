@@ -719,19 +719,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function iniciarCarga() {
         try {
-            const [filasEjercicios, filasPeso] = await Promise.all([
-                fetch(G_SCRIPT_URL).then(r => r.json()),
-                fetch(G_SCRIPT_URL + '?hoja=pesaje').then(r => r.json())
-            ]);
-
-            cacheFilas = filasEjercicios;
+            // Solo esperamos el peso para quitar el splash
+            const filasPeso = await fetch(G_SCRIPT_URL + '?hoja=pesaje').then(r => r.json());
             procesarYRenderizarPeso(filasPeso);
 
         } catch (e) {
-            console.error("Error en carga inicial:", e);
+            console.error("Error cargando peso:", e);
         } finally {
-            // Ocultar splash siempre, aunque falle la carga
             document.getElementById('splash-screen').classList.add('oculto');
+        }
+
+        // Ejercicios en background, sin bloquear
+        try {
+            const filasEjercicios = await fetch(G_SCRIPT_URL).then(r => r.json());
+            cacheFilas = filasEjercicios;
+        } catch (e) {
+            console.error("Error cargando ejercicios:", e);
         }
     }
 

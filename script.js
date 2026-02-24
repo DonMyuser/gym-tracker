@@ -141,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pages[index].classList.add('active');
 
             if (btn.id === 'progresoBtn' || index === 2) {
-                cargarEjerciciosYGrafico();
+                if (cacheFilas) rellenarSelectYGrafico(cacheFilas);
             }
         });
     });
@@ -596,17 +596,8 @@ document.addEventListener('DOMContentLoaded', () => {
         actualizarGraficoConFilas(filas, ejercicioSelect.value);
     }
 
-    async function actualizarGraficosDesdeSheets(ejercicio) {
-        try {
-            mostrarSpinner(true);
-            const filas = await (await fetch(G_SCRIPT_URL)).json();
-            cacheFilas = filas;
-            actualizarGraficoConFilas(filas, ejercicio);
-        } catch (e) {
-            console.error("Error actualizando gráfico:", e);
-        } finally {
-            mostrarSpinner(false);
-        }
+    function actualizarGraficosDesdeSheets(ejercicio) {
+        if (cacheFilas) actualizarGraficoConFilas(cacheFilas, ejercicio);
     }
 
     function actualizarGraficoConFilas(filas, ejercicio) {
@@ -646,62 +637,56 @@ document.addEventListener('DOMContentLoaded', () => {
         return Math.ceil((((d - new Date(d.getFullYear(), 0, 1)) / 86400000) + 1) / 7);
     }
 
-    async function cargarGraficoPeso() {
-        try {
-            const filas = await (await fetch(G_SCRIPT_URL + '?hoja=pesaje')).json();
+    function procesarYRenderizarPeso(filas) {
+        const porSemana = {};
+        filas.forEach(f => {
+            if (!f.Fecha || !f.Peso) return;
+            const fecha = new Date(f.Fecha);
+            if (isNaN(fecha)) return;
+            const semana = `${fecha.getFullYear()}-S${String(getWeekNumber(fecha)).padStart(2, '0')}`;
+            if (!porSemana[semana]) porSemana[semana] = { suma: 0, dias: 0 };
+            porSemana[semana].suma += parseFloat(f.Peso) || 0;
+            porSemana[semana].dias += 1;
+        });
 
-            const porSemana = {};
-            filas.forEach(f => {
-                if (!f.Fecha || !f.Peso) return;
-                const fecha = new Date(f.Fecha);
-                if (isNaN(fecha)) return;
-                const semana = `${fecha.getFullYear()}-S${String(getWeekNumber(fecha)).padStart(2, '0')}`;
-                if (!porSemana[semana]) porSemana[semana] = { suma: 0, dias: 0 };
-                porSemana[semana].suma += parseFloat(f.Peso) || 0;
-                porSemana[semana].dias += 1;
-            });
+        const etiquetas = Object.keys(porSemana).sort();
+        const valores = etiquetas.map(s =>
+            Math.round((porSemana[s].suma / porSemana[s].dias) * 100) / 100
+        );
 
-            const etiquetas = Object.keys(porSemana).sort();
-            const valores = etiquetas.map(s =>
-                Math.round((porSemana[s].suma / porSemana[s].dias) * 100) / 100
-            );
+        const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+        const etiquetasLegibles = etiquetas.map(s => {
+            const [anyo, semNum] = s.split('-S');
+            const primerDia = new Date(anyo, 0, 1 + (parseInt(semNum) - 1) * 7);
+            const mes = primerDia.getMonth();
+            const semanasMismoMes = etiquetas.filter(e => {
+                const [a, n] = e.split('-S');
+                const d = new Date(a, 0, 1 + (parseInt(n) - 1) * 7);
+                return d.getMonth() === mes && d.getFullYear() === parseInt(anyo) && n <= semNum;
+            }).length;
+            return `${MESES[mes]} ${semanasMismoMes}`;
+        });
 
-            const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+        if (window.miGraficoPeso) {
+            window.miGraficoPeso.data.labels = etiquetasLegibles;
+            window.miGraficoPeso.data.datasets[0].data = valores;
+            window.miGraficoPeso.update();
+        }
 
-            const etiquetasLegibles = etiquetas.map(s => {
-                const [anyo, semNum] = s.split('-S');
-                const primerDia = new Date(anyo, 0, 1 + (parseInt(semNum) - 1) * 7);
-                const mes = primerDia.getMonth();
-                const semanasMismoMes = etiquetas.filter(e => {
-                    const [a, n] = e.split('-S');
-                    const d = new Date(a, 0, 1 + (parseInt(n) - 1) * 7);
-                    return d.getMonth() === mes && d.getFullYear() === parseInt(anyo) && n <= semNum;
-                }).length;
-                return `${MESES[mes]} ${semanasMismoMes}`;
-            });
-
-            if (window.miGraficoPeso) {
-                window.miGraficoPeso.data.labels = etiquetasLegibles;
-                window.miGraficoPeso.data.datasets[0].data = valores;
-                window.miGraficoPeso.update();
-            }
-
-            // Trend badge
-            const badge = document.querySelector('.trend-badge');
-            if (badge && valores.length >= 2) {
-                const diff = valores[valores.length - 1] - valores[valores.length - 2];
-                const signo = diff >= 0 ? '+' : '';
-                const flecha = diff >= 0 ? '↗' : '↘';
-                badge.textContent = '';
-                badge.appendChild(Object.assign(document.createElement('span'), { textContent: flecha }));
-                badge.appendChild(document.createTextNode(` ${signo}${diff.toFixed(2)} kg`));
-                badge.classList.remove('up', 'down');
-                badge.classList.add(diff >= 0 ? 'up' : 'down');
-            } else if (badge && valores.length === 1) {
-                badge.textContent = '— Sin datos anteriores';
-                badge.classList.remove('up', 'down');
-            }
-        } catch (e) { console.error("Error cargando peso:", e); }
+        const badge = document.querySelector('.trend-badge');
+        if (badge && valores.length >= 2) {
+            const diff = valores[valores.length - 1] - valores[valores.length - 2];
+            const signo = diff >= 0 ? '+' : '';
+            const flecha = diff >= 0 ? '↗' : '↘';
+            badge.textContent = '';
+            badge.appendChild(Object.assign(document.createElement('span'), { textContent: flecha }));
+            badge.appendChild(document.createTextNode(` ${signo}${diff.toFixed(2)} kg`));
+            badge.classList.remove('up', 'down');
+            badge.classList.add(diff >= 0 ? 'up' : 'down');
+        } else if (badge && valores.length === 1) {
+            badge.textContent = '— Sin datos anteriores';
+            badge.classList.remove('up', 'down');
+        }
     }
 
     btnGuardarPeso.addEventListener('click', async () => {
@@ -731,8 +716,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+
+    async function iniciarCarga() {
+        try {
+            const [filasEjercicios, filasPeso] = await Promise.all([
+                fetch(G_SCRIPT_URL).then(r => r.json()),
+                fetch(G_SCRIPT_URL + '?hoja=pesaje').then(r => r.json())
+            ]);
+
+            // Caché de ejercicios lista para Progreso
+            cacheFilas = filasEjercicios;
+
+            // Renderizar gráfico de peso en Hub
+            procesarYRenderizarPeso(filasPeso);
+
+        } catch (e) {
+            console.error("Error en carga inicial:", e);
+        }
+    }
+
     // ARRANQUE
     actualizarUI();
-    cargarGraficoPeso();
+    iniciarCarga();
 
 }); // fin DOMContentLoaded 

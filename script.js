@@ -268,34 +268,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // ============================================================
     // FLUJO DE ENTRENAMIENTO
     // ============================================================
-    btnNextSet.addEventListener('click', () => {
-        if (!rutinaHoy) return;
+    btnSustituir.addEventListener('click', () => {
+        ejercicioSustituido = !ejercicioSustituido;
 
-        const nombreEjercicio = ejercicioSustituido
-            ? rutinaHoy.ejercicios[ejercicioActualIndex].sustituto
-            : rutinaHoy.ejercicios[ejercicioActualIndex].nombre;
-
-        // Guardar en sesión (no en Sheets todavía)
-        setSesionEntry(ejercicioActualIndex, serieActual, {
-            ejercicio: nombreEjercicio,
-            peso: parseFloat(inputPeso.value) || 0,
-            reps: parseFloat(inputReps.value) || 0,
-            rir: parseFloat(inputRir.value) || 0
-        });
-
-        const totalSeries = rutinaHoy.ejercicios[ejercicioActualIndex].series;
-        if (serieActual < totalSeries) {
-            serieActual++;
-        } else if (ejercicioActualIndex < rutinaHoy.ejercicios.length - 1) {
-            ejercicioActualIndex++;
-            serieActual = 1;
+        if (ejercicioSustituido) {
+            btnSustituir.style.color = 'var(--accent)';
+            btnSustituir.style.borderColor = 'var(--accent)';
+            ejercicioDisplay.innerText =
+                rutinaHoy.ejercicios[ejercicioActualIndex].sustituto;
         } else {
-            mostrarPantallaFinal();
-            return;
+            btnSustituir.style.color = 'var(--text-muted)';
+            btnSustituir.style.borderColor = 'rgba(255,255,255,0.1)';
+            ejercicioDisplay.innerText =
+                rutinaHoy.ejercicios[ejercicioActualIndex].nombre;
         }
-        actualizarUI('next');
     });
-
     document.getElementById('btn-back').addEventListener('click', () => {
         if (!rutinaHoy) return;
         if (serieActual > 1) {
@@ -343,6 +330,8 @@ document.addEventListener('DOMContentLoaded', () => {
             rir: parseFloat(inputRir.value) || 0
         });
 
+        const descansoBruto = rutinaHoy.ejercicios[ejercicioActualIndex]?.descanso ?? 90;
+
         const totalSeries = rutinaHoy.ejercicios[ejercicioActualIndex].series;
 
         // ¿Es la última serie del último ejercicio?
@@ -364,7 +353,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Mostrar cronómetro y luego actualizar UI
-        const descansoBruto = rutinaHoy.ejercicios[ejercicioActualIndex]?.descanso ?? 90;
+
         // Si acabamos de avanzar de ejercicio, usamos el descanso del nuevo
         mostrarCronometro(descansoBruto, () => actualizarUI(direccion));
     });

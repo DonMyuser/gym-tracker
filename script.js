@@ -63,6 +63,11 @@ const rutinaHoy = rutinas[diaHoy];
 
 document.addEventListener('DOMContentLoaded', () => {
 
+    setTimeout(() => {
+        const splash = document.getElementById('splash-screen');
+        if (splash) splash.classList.add('oculto');
+    }, 3000);
+
     // ============================================================
     // ESTADO
     // ============================================================
@@ -78,13 +83,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sesionGuardada) {
         try {
             sesion = JSON.parse(sesionGuardada);
-            // Calcular en qué ejercicio y serie estábamos
             const indices = Object.keys(sesion).map(Number);
             if (indices.length) {
                 ejercicioActualIndex = Math.max(...indices);
                 const seriesGuardadas = Object.keys(sesion[ejercicioActualIndex]).map(Number);
                 serieActual = Math.max(...seriesGuardadas);
-                // Si esa serie ya estaba completa, avanzar a la siguiente
                 const totalSeries = rutinaHoy?.ejercicios[ejercicioActualIndex]?.series;
                 if (totalSeries && serieActual >= totalSeries) {
                     if (ejercicioActualIndex < rutinaHoy.ejercicios.length - 1) {
@@ -127,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const pesoFeedback = document.getElementById('peso-feedback');
     const btnSustituir = document.getElementById('btn-sustituir');
 
-    btnSustituir.style.display = 'flex';
+    if (btnSustituir) btnSustituir.style.display = 'flex';
 
     if (!rutinaHoy) {
         trainingContainer.innerHTML = `
@@ -244,7 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ============================================================
     // FLUJO DE ENTRENAMIENTO
     // ============================================================
-    btnSustituir.addEventListener('click', () => {
+    btnSustituir?.addEventListener('click', () => {
         if (!rutinaHoy) return;
         ejercicioSustituido = !ejercicioSustituido;
         ejercicioDisplay.innerText = ejercicioSustituido
@@ -254,14 +257,13 @@ document.addEventListener('DOMContentLoaded', () => {
         btnSustituir.style.borderColor = ejercicioSustituido ? 'var(--accent)' : 'rgba(255,255,255,0.1)';
     });
 
-    document.getElementById('btn-back').addEventListener('click', () => {
+    document.getElementById('btn-back')?.addEventListener('click', () => {
         if (!rutinaHoy) return;
 
         if (serieActual === 1) {
-            // Serie 1 → saltar al ejercicio anterior completo
             if (ejercicioActualIndex > 0) {
                 ejercicioActualIndex--;
-                serieActual = 1; // siempre vuelve a serie 1 del anterior
+                serieActual = 1;
             }
         } else {
             serieActual--;
@@ -270,7 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
         actualizarUI('back');
     });
 
-    btnNextSet.addEventListener('click', () => {
+    btnNextSet?.addEventListener('click', () => {
         if (!rutinaHoy) return;
 
         const ejercicioActual = rutinaHoy.ejercicios[ejercicioActualIndex];
@@ -278,11 +280,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const reps = parseFloat(inputReps.value);
         const hayDatos = peso && reps;
 
-        // Si no hay datos y estamos en serie 1 → saltar ejercicio
         const saltarEjercicio = !hayDatos && serieActual === 1;
 
         if (hayDatos) {
-            // Limpiar bordes de error si los había
             inputPeso.style.borderColor = '';
             inputReps.style.borderColor = '';
 
@@ -293,7 +293,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 rir: parseFloat(inputRir.value) || 0
             });
         } else if (!saltarEjercicio) {
-            // Hay datos en series anteriores pero esta serie está vacía → marcar error
             inputPeso.style.borderColor = !peso ? 'var(--danger)' : '';
             inputReps.style.borderColor = !reps ? 'var(--danger)' : '';
             return;
@@ -309,7 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (saltarEjercicio) {
             ejercicioActualIndex++;
             serieActual = 1;
-            actualizarUI('next'); // sin cronómetro al saltar
+            actualizarUI('next');
         } else if (serieActual < ejercicioActual.series) {
             serieActual++;
             mostrarCronometro(descanso, () => actualizarUI('next'));
@@ -319,6 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
             mostrarCronometro(descanso, () => actualizarUI('next'));
         }
     });
+
     // ============================================================
     // FINALIZAR
     // ============================================================
@@ -332,11 +332,11 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('hubBtn').click();
     }
 
-    document.getElementById('finalizar-todo-btn').addEventListener('click', function () {
+    document.getElementById('finalizar-todo-btn')?.addEventListener('click', function () {
         finalizarYSalir(this);
     });
 
-    document.querySelector('.btn-secondary').addEventListener('click', mostrarResumen);
+    document.querySelector('.btn-secondary')?.addEventListener('click', mostrarResumen);
 
     // ============================================================
     // RESUMEN EDITABLE
@@ -429,7 +429,7 @@ document.addEventListener('DOMContentLoaded', () => {
         function terminar() {
             clearInterval(restTimer);
             overlay.style.display = 'none';
-            desactivarWakeLock();  // ← añade esta línea
+            desactivarWakeLock();
             if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
             onFin();
         }
@@ -480,8 +480,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             trainingContainer.classList.replace(exitClass, enterClass);
             setTimeout(() => trainingContainer.classList.remove(enterClass, 'animating'), 250);
-            btnNextSet.textContent = 'Siguiente Serie';
-            // Texto dinámico del botón
+
             const esSerie1SinDatos = serieActual === 1 && !getSesionEntry(ejercicioActualIndex, serieActual);
             const esUltimoEjercicio = ejercicioActualIndex === rutinaHoy.ejercicios.length - 1;
             btnNextSet.textContent = (esSerie1SinDatos && !esUltimoEjercicio) ? 'Saltar ejercicio →' : 'Siguiente Serie';
@@ -626,7 +625,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // ARRANQUE
     // ============================================================
     async function iniciarCarga() {
-        // Timeout de seguridad — si en 8 segundos no carga, quita el splash igualmente
         const timeoutId = setTimeout(() => {
             document.getElementById('splash-screen').classList.add('oculto');
         }, 8000);
@@ -648,7 +646,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-
     // ============================================================
     // WAKE LOCK — mantener pantalla encendida durante el descanso
     // ============================================================
@@ -656,13 +653,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function activarWakeLock() {
         if (wakeLockVideo) return;
-
         wakeLockVideo = document.createElement('video');
         wakeLockVideo.setAttribute('playsinline', '');
         wakeLockVideo.setAttribute('muted', '');
         wakeLockVideo.style.display = 'none';
-
-        // Video de 1x1 pixel en loop — solo para mantener la pantalla activa
         wakeLockVideo.src = 'data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAA';
         wakeLockVideo.loop = true;
         document.body.appendChild(wakeLockVideo);
@@ -679,4 +673,4 @@ document.addEventListener('DOMContentLoaded', () => {
     actualizarUI();
     iniciarCarga();
 
-});
+}); // fin DOMContentLoaded

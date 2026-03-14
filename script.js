@@ -626,12 +626,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // ARRANQUE
     // ============================================================
     async function iniciarCarga() {
+        // Timeout de seguridad — si en 8 segundos no carga, quita el splash igualmente
+        const timeoutId = setTimeout(() => {
+            document.getElementById('splash-screen').classList.add('oculto');
+        }, 8000);
+
         try {
             const filasPeso = await fetch(`${G_SCRIPT_URL}?hoja=pesaje`).then(r => r.json());
             procesarYRenderizarPeso(filasPeso);
         } catch (e) {
             console.error('Error cargando peso:', e);
         } finally {
+            clearTimeout(timeoutId);
             document.getElementById('splash-screen').classList.add('oculto');
         }
 
